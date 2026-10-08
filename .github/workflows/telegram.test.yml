@@ -1,25 +1,21 @@
-name: Test Telegram Connection
+name: Test Telegram - Debug Version
 
 on:
   workflow_dispatch:
 
 jobs:
-  test-telegram:
+  test:
     runs-on: ubuntu-latest
-
     steps:
-      - name: 🔄 Clone Repository
-        uses: actions/checkout@v4
-
-      - name: 🐍 Setup Python
-        uses: actions/setup-python@v5
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: '3.10'
 
-      - name: 📦 Install Dependencies
+      - name: Install requests
         run: pip install requests
 
-      - name: 🧪 Test Telegram Connection
+      - name: Debug & Test Telegram
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
@@ -27,56 +23,59 @@ jobs:
           python3 << 'EOF'
           import os
           import requests
-          import json
+
+          print("="*60)
+          print("TELEGRAM TEST - DEBUG MODE")
+          print("="*60)
 
           token = os.getenv('TELEGRAM_BOT_TOKEN', '')
           chat_id = os.getenv('TELEGRAM_CHAT_ID', '')
 
-          print("=" * 50)
-          print("🧪 TELEGRAM CONNECTION TEST")
-          print("=" * 50)
+          print(f"\n1. Check Secrets:")
+          print(f"   Token exists: {bool(token)}")
+          print(f"   Chat ID exists: {bool(chat_id)}")
 
-          # Check if secrets exist
-          if not token:
-              print("❌ TELEGRAM_BOT_TOKEN not found!")
+          if not token or not chat_id:
+              print("\n❌ ERROR: Secrets not found!")
+              print("   Go to: Settings → Secrets → Check TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID")
               exit(1)
 
-          if not chat_id:
-              print("❌ TELEGRAM_CHAT_ID not found!")
-              exit(1)
+          print(f"   Token (first 20): {token[:20]}...")
+          print(f"   Chat ID: {chat_id}")
 
-          print(f"✅ Token found: {token[:20]}...")
-          print(f"✅ Chat ID found: {chat_id}")
-
-          # Try to send test message
-          print("\n📤 Attempting to send test message...")
+          print(f"\n2. Attempt to send message:")
 
           try:
               url = f"https://api.telegram.org/bot{token}/sendMessage"
+
+              # Ensure chat_id is string
+              chat_id_str = str(chat_id)
+
               payload = {
-                  'chat_id': chat_id,
-                  'text': '🧪 TEST MESSAGE\n\n✅ Telegram API Connection Works!\n\nCodal Agent is ready to send daily reports.',
-                  'parse_mode': 'HTML'
+                  'chat_id': chat_id_str,
+                  'text': '🧪 Test Message\n✅ Codal Agent Telegram Connection OK!'
               }
 
-              response = requests.post(url, json=payload, timeout=10)
+              print(f"   URL: {url[:50]}...")
+              print(f"   Payload: chat_id={chat_id_str}, text=...\n")
 
-              print(f"Status Code: {response.status_code}")
+              response = requests.post(url, json=payload, timeout=15)
+
+              print(f"   Status: {response.status_code}")
+              print(f"   Response: {response.text}\n")
 
               if response.status_code == 200:
-                  result = response.json()
-                  print(f"✅ SUCCESS!")
-                  print(f"Message ID: {result.get('result', {}).get('message_id', 'N/A')}")
+                  print("✅ SUCCESS! Message sent to Telegram")
               else:
-                  print(f"❌ FAILED!")
-                  print(f"Response: {response.text}")
+                  print("❌ FAILED! Check response above")
                   exit(1)
 
           except Exception as e:
-              print(f"❌ ERROR: {str(e)}")
+              print(f"❌ EXCEPTION: {type(e).__name__}")
+              print(f"   {str(e)}\n")
               exit(1)
 
-          print("\n" + "=" * 50)
-          print("✅ All tests passed!")
-          print("=" * 50)
+          print("="*60)
+          print("Test completed successfully!")
+          print("="*60)
           EOF
