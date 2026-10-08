@@ -104,7 +104,10 @@ class CodalDailyAgent:
                 print("✅ گزارش به تلگرام فرستاده شد")
                 return True
             else:
-                print(f"⚠️  خطا در ارسال: {response.status_code}")
+                # Print Telegram's error body: it states the real reason
+                # (e.g. "chat not found", "Unauthorized", "can't parse entities")
+                print(f"❌ خطا در ارسال به تلگرام: {response.status_code}")
+                print(f"   پاسخ تلگرام: {response.text}")
                 return False
 
         except Exception as e:
@@ -187,8 +190,9 @@ class CodalDailyAgent:
                 print("✅ کامل شد")
                 return True
             else:
-                print("⚠️  گزارش محلی ذخیره شد")
-                return True
+                # Fail the run so a missed Telegram delivery is visible in Actions
+                print("❌ ارسال به تلگرام ناموفق بود (گزارش محلی ذخیره شد)")
+                return False
 
         except Exception as e:
             print(f"❌ خطای عمومی: {str(e)}")

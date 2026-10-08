@@ -40,7 +40,8 @@ jobs:
               print("   Go to: Settings → Secrets → Check TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID")
               exit(1)
 
-          print(f"   Token (first 20): {token[:20]}...")
+          # Do not print any part of the token into the logs
+          print(f"   Token length: {len(token)}")
           print(f"   Chat ID: {chat_id}")
 
           print(f"\n2. Attempt to send message:")
