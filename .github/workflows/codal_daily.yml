@@ -33,7 +33,7 @@ jobs:
       
       - name: 📤 Upload Report
         if: always()
-        uses: actions/upload-artifact@v4  ← تغییر شد!
+        uses: actions/upload-artifact@v4
         with:
           name: codal-reports
           path: agents/codal_agent/report_*.txt
