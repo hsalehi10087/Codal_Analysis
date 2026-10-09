@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Commodities & Crypto Analyzer
 تحلیل کالاهای اساسی و رمزارز
+Commodities & Crypto Analyzer - Prices, Changes (Daily/Weekly/Monthly), Fundamentals & News
 """
 
-from typing import List, Dict
+from typing import List, Dict, Tuple
 from datetime import datetime
 
 class CommoditiesAnalyzer:
@@ -17,6 +17,7 @@ class CommoditiesAnalyzer:
             'GOLD': {
                 'name': 'طلا',
                 'symbol': 'XAU/USD',
+                'emoji': '🥇',
                 'price': 2085.50,
                 'day_change': 0.8,
                 'week_change': 2.1,
@@ -27,6 +28,7 @@ class CommoditiesAnalyzer:
             'OIL': {
                 'name': 'نفت',
                 'symbol': 'WTI/USD',
+                'emoji': '⛽',
                 'price': 78.45,
                 'day_change': -1.2,
                 'week_change': 1.5,
@@ -37,6 +39,7 @@ class CommoditiesAnalyzer:
             'DOLLAR': {
                 'name': 'دلار',
                 'symbol': 'DXY',
+                'emoji': '💵',
                 'price': 104.23,
                 'day_change': 0.35,
                 'week_change': 1.1,
@@ -47,6 +50,7 @@ class CommoditiesAnalyzer:
             'SILVER': {
                 'name': 'نقره',
                 'symbol': 'XAG/USD',
+                'emoji': '🪙',
                 'price': 24.78,
                 'day_change': 1.2,
                 'week_change': 2.8,
@@ -57,6 +61,7 @@ class CommoditiesAnalyzer:
             'COPPER': {
                 'name': 'مس',
                 'symbol': 'HG',
+                'emoji': '🔧',
                 'price': 4.15,
                 'day_change': -0.5,
                 'week_change': 0.8,
@@ -67,6 +72,7 @@ class CommoditiesAnalyzer:
             'UREA': {
                 'name': 'اوره',
                 'symbol': 'URA',
+                'emoji': '🌾',
                 'price': 285.50,
                 'day_change': 0.9,
                 'week_change': 1.5,
@@ -77,6 +83,7 @@ class CommoditiesAnalyzer:
             'METHANOL': {
                 'name': 'متانول',
                 'symbol': 'MTL',
+                'emoji': '🧪',
                 'price': 358.25,
                 'day_change': -0.7,
                 'week_change': -0.5,
@@ -87,6 +94,7 @@ class CommoditiesAnalyzer:
             'BITCOIN': {
                 'name': 'بیتکوین',
                 'symbol': 'BTC/USD',
+                'emoji': '🪙',
                 'price': 42850.00,
                 'day_change': 2.3,
                 'week_change': 5.1,
@@ -96,110 +104,65 @@ class CommoditiesAnalyzer:
             }
         }
 
-    def analyze(self) -> List[Dict]:
-        """تحلیل تمام کالاها و رمزارزها"""
-        analyzed = []
+    def generate_detailed_report(self) -> Tuple[List[str], List]:
+        """تولید گزارش تفصیلی برای تلگرام با جدول و تحلیل"""
+        blocks = []
+
+        # عنوان
+        blocks.append(f"💎 <b>تحلیل طلا و نفت و دلار و نقره و مس و اوره و متانول و بیتکوین</b>\n"
+                     f"<i>قیمت‌ها و تغییرات روزانه/هفتگی/ماهانه با تحلیل بنیادی و اخبار</i>\n"
+                     f"📅 {self.timestamp}")
+
+        # جدول قیمت‌ها و تغییرات
+        table_lines = [
+            "کالا        قیمت      روزانه  هفتگی  ماهانه",
+            "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        ]
 
         for code, data in self.commodities.items():
-            analyzed.append({
-                'code': code,
-                'name': data['name'],
-                'symbol': data['symbol'],
-                'price': data['price'],
-                'day_change': data['day_change'],
-                'week_change': data['week_change'],
-                'month_change': data['month_change'],
-                'fundamentals': data['fundamentals'],
-                'news': data['news'],
-                'trend': self._determine_trend(data['day_change'], data['month_change']),
-                'signal': self._generate_signal(data['day_change'], data['month_change'])
-            })
+            name = data['name'].ljust(10)
+            price = f"${data['price']:>8.2f}".rjust(10)
+            day = f"{data['day_change']:+6.1f}%"
+            week = f"{data['week_change']:+6.1f}%"
+            month = f"{data['month_change']:+6.1f}%"
 
-        return analyzed
+            table_lines.append(f"{name}{price}{day}{week}{month}")
 
-    def _determine_trend(self, day_change: float, month_change: float) -> str:
-        """تعیین روند عمومی"""
-        if day_change > 1 and month_change > 2:
-            return 'صعودی قوی'
-        elif day_change > 0 and month_change > 0:
-            return 'صعودی'
-        elif day_change < -1 and month_change < -2:
-            return 'نزولی قوی'
-        elif day_change < 0 and month_change < 0:
-            return 'نزولی'
-        else:
-            return 'خنثی'
+        blocks.append("<code>" + "\n".join(table_lines) + "</code>")
 
-    def _generate_signal(self, day_change: float, month_change: float) -> str:
-        """تولید سیگنال معاملاتی"""
-        if day_change > 1.5 and month_change > 3:
-            return '📈 خرید (شتاب صعودی)'
-        elif day_change > 0 and month_change > 1:
-            return '📊 نگاه (روند صعودی)'
-        elif day_change < -1.5 and month_change < -3:
-            return '📉 فروش (شتاب نزولی)'
-        elif day_change < 0 and month_change < -1:
-            return '📊 نگاه (روند نزولی)'
-        else:
-            return '⚪ نقطه‌تحول (موقعیت نامعین)'
+        # تحلیل تفصیلی هر کالا
+        blocks.append("<b>تحلیل تفصیلی</b>")
 
-    def generate_summary_table(self) -> str:
-        """تولید جدول خلاصه برای تلگرام"""
-        analyzed = self.analyze()
+        for code, data in self.commodities.items():
+            # تعیین روند
+            if data['day_change'] > 2:
+                trend_emoji = '🔥'
+            elif data['day_change'] > 0:
+                trend_emoji = '📈'
+            elif data['day_change'] < -2:
+                trend_emoji = '📉'
+            else:
+                trend_emoji = '↔️'
 
-        table = "<code>"
-        table += "کالا        قیمت    روزانه   هفتگی   ماهانه\n"
-        table += "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
-
-        for item in analyzed:
-            name = item['name'].ljust(10)
-            price = str(round(item['price'], 2)).ljust(8)
-
-            day = str(round(item['day_change'], 1)).rjust(6) + '%'
-            week = str(round(item['week_change'], 1)).rjust(6) + '%'
-            month = str(round(item['month_change'], 1)).rjust(6) + '%'
-
-            table += f"{name}{price}{day}{week}{month}\n"
-
-        table += "</code>"
-        return table
-
-    def generate_detailed_report(self) -> str:
-        """تولید گزارش تفصیلی برای تلگرام"""
-        analyzed = self.analyze()
-
-        report = f"""💎 گزارش کالاهای اساسی و رمزارز
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-📅 {self.timestamp}
-
+            detail = f"""{trend_emoji} <b>{data['emoji']} {data['name']}</b> ({data['symbol']})
+┌─ قیمت فعلی: ${data['price']:,.2f}
+├─ تغییرات: روزانه {data['day_change']:+.1f}% | هفتگی {data['week_change']:+.1f}% | ماهانه {data['month_change']:+.1f}%
+├─ تحلیل بنیادی: {data['fundamentals']}
+└─ اخبار: {data['news']}
 """
+            blocks.append(detail)
 
-        # Summary table
-        report += self.generate_summary_table()
-        report += "\n\n"
+        # خلاصه
+        blocks.append("📊 <b>خلاصه</b>\n"
+                     "• کالاهای اساسی در حالت نوسان هستند\n"
+                     "• دلار و نقره صعودی؛ نفت و متانول نزولی\n"
+                     "• بیتکوین رشد قوی را نشان می‌دهد\n"
+                     "⚠️ این گزارش خودکار است و توصیه‌ی خرید یا فروش نیست.\n"
+                     "#کالاها #رمزارز #تحلیل_فنی")
 
-        # Detailed analysis
-        for item in analyzed:
-            trend_emoji = {
-                'صعودی قوی': '🔥',
-                'صعودی': '📈',
-                'نزولی قوی': '🔴',
-                'نزولی': '📉',
-                'خنثی': '⚪'
-            }.get(item['trend'], '⚪')
+        return blocks, []
 
-            report += f"""{trend_emoji} <b>{item['name']}</b> ({item['symbol']})
-┌─ قیمت: ${item['price']}
-├─ روند: {item['trend']}
-├─ سیگنال: {item['signal']}
-├─ تحلیل بنیادی: {item['fundamentals']}
-└─ اخبار: {item['news']}
-
-"""
-
-        report += """━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-📊 کالاها و رمزارزها - تحلیل خودکار
-#کالاها #رمزارز #تحلیل_فنی #سرمایه‌گذاری
-"""
-
-        return report
+    def run(self) -> Tuple[List[str], List, bool]:
+        """اجرای تحلیلگر"""
+        blocks, hl = self.generate_detailed_report()
+        return blocks, hl, True
