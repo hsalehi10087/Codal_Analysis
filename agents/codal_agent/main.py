@@ -16,6 +16,7 @@ from typing import List, Dict
 from scraper import CogalScraper
 from analyzer import StockAnalyzer
 from report_generator import ReportGenerator
+from commodities_analyzer import CommoditiesAnalyzer
 
 class CodalDailyAgent:
     def __init__(self):
@@ -165,12 +166,20 @@ class CodalDailyAgent:
 
             print(f"✅ {len(analyzed_stocks)} سهام تحلیل شد")
 
-            # 3. Generate report
-            print("📊 تولید گزارش...")
-            generator = ReportGenerator(analyzed_stocks)
-            telegram_report = generator.generate_telegram_report()
+            # 3. Analyze commodities
+            print("💎 تحلیل کالاهای اساسی...")
+            commodities_analyzer = CommoditiesAnalyzer()
+            commodities_report = commodities_analyzer.generate_detailed_report()
 
-            # 4. Save report locally
+            # 4. Generate stock report
+            print("📊 تولید گزارش سهام...")
+            generator = ReportGenerator(analyzed_stocks)
+            stocks_report = generator.generate_telegram_report()
+
+            # 5. Combine reports
+            telegram_report = stocks_report + "\n\n" + commodities_report
+
+            # 6. Save report locally
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             report_file = f"report_{timestamp}.txt"
 
@@ -179,7 +188,7 @@ class CodalDailyAgent:
 
             print(f"✅ گزارش ذخیره شد: {report_file}")
 
-            # 5. Send to Telegram
+            # 7. Send to Telegram
             print("📤 ارسال گزارش...")
             success = self.send_telegram_report(telegram_report)
 
@@ -210,7 +219,13 @@ class CodalDailyAgent:
                     }
                 ]
                 generator = ReportGenerator(sample_stocks)
-                report = generator.generate_telegram_report()
+                stocks_report = generator.generate_telegram_report()
+
+                # Add commodities report
+                commodities_analyzer = CommoditiesAnalyzer()
+                commodities_report = commodities_analyzer.generate_detailed_report()
+
+                report = stocks_report + "\n\n" + commodities_report
 
                 timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
                 report_file = f"report_{timestamp}.txt"
@@ -218,6 +233,9 @@ class CodalDailyAgent:
                     f.write(report)
 
                 print(f"✅ نمونه ذخیره شد: {report_file}")
+
+                # Try to send fallback report
+                self.send_telegram_report(report)
                 return True
             except Exception as e2:
                 print(f"❌ خطا در نمونه: {str(e2)}")
